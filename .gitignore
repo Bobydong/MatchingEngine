@@ -1,5 +1,6 @@
 build/
 cmake-build-*/
+.cache/
 *.o
 *.a
 *.so
@@ -10,3 +11,4 @@ compile_commands.json
 .DS_Store
 Thumbs.db
 benchmarks/results/
+context/
