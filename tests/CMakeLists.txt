@@ -2,7 +2,7 @@ include(GoogleTest)
 
 add_executable(me_tests
   test_smoke.cpp
-  # add test files here as you create them
+  test_types.cpp
 )
 
 target_link_libraries(me_tests PRIVATE
