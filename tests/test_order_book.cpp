@@ -230,6 +230,105 @@ TEST(OrderBook, BestPricesUpdateAfterTrade) {
     EXPECT_EQ(book.best_bid(), std::nullopt);
 }
 
+// T19: index is empty after all resting orders are consumed by matching
+TEST(OrderBook, IndexEmptyAfterAllOrdersConsumed) {
+    OrderBook book;
+    Order ask1{1, Side::Sell, OrderType::Limit, 100, 10, 1};
+    Order ask2{2, Side::Sell, OrderType::Limit, 101, 10, 2};
+    Order ask3{3, Side::Sell, OrderType::Limit, 102, 10, 3};
+    book.add_order(ask1);
+    book.add_order(ask2);
+    book.add_order(ask3);
+    EXPECT_EQ(book.index_size(), 3u);
+
+    // Sweep all three levels exactly — incoming also fully consumed, nothing rests
+    Order bid{4, Side::Buy, OrderType::Limit, 102, 30, 4};
+    auto trades = book.add_order(bid);
+
+    ASSERT_EQ(trades.size(), 3u);
+    EXPECT_EQ(book.index_size(), 0u);  // all consumed orders removed, incoming fully filled
+}
+
+// T19: index tracks resting orders and removes consumed ones correctly
+TEST(OrderBook, IndexTracksPartialConsumption) {
+    OrderBook book;
+    Order ask1{1, Side::Sell, OrderType::Limit, 100, 10, 1};
+    Order ask2{2, Side::Sell, OrderType::Limit, 101, 10, 2};
+    book.add_order(ask1);
+    book.add_order(ask2);
+    EXPECT_EQ(book.index_size(), 2u);
+
+    // Consume only the first level — ask2 should still be in index
+    Order bid{3, Side::Buy, OrderType::Limit, 100, 10, 3};
+    book.add_order(bid);
+
+    EXPECT_EQ(book.index_size(), 1u);  // ask2 still resting
+}
+
+// T21: unknown id returns false
+TEST(OrderBook, CancelUnknownIdReturnsFalse) {
+    OrderBook book;
+    EXPECT_FALSE(book.cancel_order(999u));
+}
+
+// T21: cancel best resting order updates best_bid/best_ask
+TEST(OrderBook, CancelBestOrderUpdatesBestPrice) {
+    OrderBook book;
+    Order bid1{1, Side::Buy, OrderType::Limit, 101, 10, 1};
+    Order bid2{2, Side::Buy, OrderType::Limit,  99, 10, 2};
+    book.add_order(bid1);
+    book.add_order(bid2);
+    EXPECT_EQ(book.best_bid(), 101);
+
+    EXPECT_TRUE(book.cancel_order(1u));
+    EXPECT_EQ(book.best_bid(), 99);  // next level becomes best
+}
+
+// T21: canceled order not matched by subsequent crossing order
+TEST(OrderBook, CanceledOrderNotMatched) {
+    OrderBook book;
+    Order ask{1, Side::Sell, OrderType::Limit, 100, 10, 1};
+    book.add_order(ask);
+    book.cancel_order(1u);
+
+    Order bid{2, Side::Buy, OrderType::Limit, 100, 10, 2};
+    auto trades = book.add_order(bid);
+
+    EXPECT_TRUE(trades.empty());       // canceled order produced no trade
+    EXPECT_EQ(book.best_bid(), 100);   // bid rested since nothing to match
+}
+
+// T21: cancel after partial fill — only remaining quantity canceled, no zombie state
+TEST(OrderBook, CancelAfterPartialFill) {
+    OrderBook book;
+    Order ask{1, Side::Sell, OrderType::Limit, 100, 30, 1};
+    book.add_order(ask);
+
+    // Partially fill ask — 10 traded, 20 remain
+    Order bid{2, Side::Buy, OrderType::Limit, 100, 10, 2};
+    auto trades = book.add_order(bid);
+    ASSERT_EQ(trades.size(), 1u);
+    EXPECT_EQ(trades[0].quantity, 10);
+
+    // Cancel the remaining 20 — should succeed
+    EXPECT_TRUE(book.cancel_order(1u));
+    EXPECT_EQ(book.best_ask(), std::nullopt);
+    EXPECT_EQ(book.index_size(), 0u);
+}
+
+// T21: cancel last order at a price level removes the level entirely
+TEST(OrderBook, CancelLastOrderRemovesPriceLevel) {
+    OrderBook book;
+    Order ask1{1, Side::Sell, OrderType::Limit, 100, 10, 1};
+    Order ask2{2, Side::Sell, OrderType::Limit, 102, 10, 2};
+    book.add_order(ask1);
+    book.add_order(ask2);
+
+    book.cancel_order(1u);  // remove only order at $100
+
+    EXPECT_EQ(book.best_ask(), 102);  // $100 level gone, $102 is new best
+}
+
 // T14: empty price level is erased after full consumption
 TEST(OrderBook, EmptyPriceLevelErasedAfterMatch) {
     OrderBook book;

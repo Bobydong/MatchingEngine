@@ -2,6 +2,7 @@
 #include "me/order.h"
 #include "me/types.h"
 #include <vector>
+#include <list>
 
 std::optional<me::Price> me::OrderBook::best_bid() const {
     if (bids_.empty()) {
@@ -98,4 +99,26 @@ std::vector<me::Trade> me::OrderBook::add_order(const me::Order& order) {
     }
 
     return trades;
+}
+
+bool me::OrderBook::cancel_order(OrderId id) {
+    if (!index_.contains(id)) {
+        return false;
+    }
+
+    OrderLocation loc = index_[id];
+
+    if (loc.side == Side::Buy) {
+        std::list<Order>& queue = bids_[loc.price];
+        queue.erase(loc.iter);
+        if (queue.empty()) bids_.erase(loc.price);
+    } 
+    else {
+        std::list<Order>& queue = asks_[loc.price];
+        queue.erase(loc.iter);
+        if (queue.empty()) asks_.erase(loc.price);
+    }
+
+    index_.erase(id);
+    return true;
 }
