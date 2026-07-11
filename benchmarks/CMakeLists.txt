@@ -1,1 +1,5 @@
-# Phase 1: Google Benchmark integration goes here
+add_library(me_bench_support
+    order_generator.cpp
+)
+target_include_directories(me_bench_support PUBLIC ${CMAKE_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(me_bench_support PUBLIC me_core)
