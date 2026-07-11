@@ -26,6 +26,5 @@ namespace me {
             std::optional<Price> best_bid() const;
             std::optional<Price> best_ask() const;
             std::size_t index_size() const { return index_.size(); }
-
     };
 } // namespace me
