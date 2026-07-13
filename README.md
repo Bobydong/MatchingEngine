@@ -91,9 +91,42 @@ add_order(incoming):
 - 34 unit tests covering: non-crossing inserts, single-fill matches, multi-level sweeps, partial fills both directions, market orders, time priority, cancel in all states
 - Randomized cross-check: 5 × 5000 operations compared against a simple reference implementation, all seeds pass
 
-**Phase 1 — Benchmark harness** *(next)*
+**Phase 1 — Benchmark harness ✓**
+
+- `OrderGenerator`: reproducible mixed workload (60% limit adds, 35% cancels, 5% market orders)
+- Google Benchmark steady-state throughput harness (`me_bench`)
+- Latency distribution harness recording 1M individual `add_order` timings (`me_latency`)
+- Analysis script computing p50/p99/p99.9 from raw nanosecond data (`analyze.py`)
+- Baseline results captured (see below)
 
 **Phase 2 — Optimization** *(planned)*
+
+---
+
+## Benchmark Results — Baseline (Phase 1)
+
+**Hardware:** Intel Core i5-8210Y @ 1.60 GHz (MacBook Air, dual-core)  
+**Compiler:** Apple Clang 16.0.0  
+**Build:** `-O3 -DNDEBUG` (CMake Release)  
+**Methodology:** Steady-state book pre-populated with ~5,000 resting orders; mixed workload (60% limit adds, 35% cancels, 5% market orders). Google Benchmark run 3×, median taken (run 3 discarded as outlier). Latency harness records 10,000-op warmup then 1,000,000 timed `add_order` calls individually.
+
+### Throughput (`add_order`, Google Benchmark)
+
+| Run | Wall time | CPU time | Throughput |
+|-----|-----------|----------|------------|
+| 1   | 540 ns    | 514 ns   | 1.94 M/s   |
+| 2 *(median)* | 660 ns | 548 ns | 1.83 M/s |
+| 3 *(outlier)* | 2211 ns | 843 ns | 1.19 M/s |
+
+**Baseline: ~1.83M orders/sec (548 ns CPU time per op)**
+
+### Latency Distribution (`add_order`, 1M samples)
+
+| Percentile | Latency |
+|---|---|
+| p50   | 300 ns  |
+| p99   | 1,344 ns |
+| p99.9 | 3,364 ns |
 
 ---
 
