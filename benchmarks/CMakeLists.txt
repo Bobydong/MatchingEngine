@@ -7,6 +7,14 @@ target_link_libraries(me_bench_support PUBLIC me_core)
 add_executable(me_bench
     bench_main.cpp
 )
+add_executable(me_latency
+    latency_dist.cpp
+)
+target_link_libraries(me_latency PRIVATE
+    me_core
+    me_bench_support
+)
+
 target_link_libraries(me_bench PRIVATE
     me_core
     me_bench_support
