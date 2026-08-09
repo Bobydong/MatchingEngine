@@ -6,9 +6,9 @@
 namespace ME{
     enum class Side { BID, ASK };
     enum class OrderType { LIMIT, MARKET };
+    enum class OrderStatus { ACCEPTED, REJECTED };
 
-    typedef std::int64_t Price;
-        // Prices use int64_t to avoid floating point precision issues.
+    typedef std::int64_t Price; // Prices use int64_t to avoid floating point precision issues.
     typedef std::int64_t ID;
     typedef std::int64_t Quantity;
     typedef std::int64_t Timestamp;
@@ -38,4 +38,6 @@ namespace ME{
         Quantity quantity; 
         Timestamp timestamp;
     };
+
+    
 }
