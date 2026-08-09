@@ -3,6 +3,8 @@
 #include <list>
 #include <unordered_map>
 #include <optional>
+#include <vector>
+#include "types.h"
 
 namespace ME {
     class orderbook {
