@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <list>
+#include <string>
 
 namespace ME{
     enum class Side { BID, ASK };
@@ -8,12 +9,14 @@ namespace ME{
 
     typedef std::int64_t Price;
         // Prices use int64_t to avoid floating point precision issues.
-    typedef std::int64_t OrderId;
+    typedef std::int64_t ID;
     typedef std::int64_t Quantity;
     typedef std::int64_t Timestamp;
   
     struct Order{
-        OrderId id;
+        ID order_id;
+        ID maker_id;
+        std::string symbol;
         Side side;
         OrderType type;
         Price price;
@@ -29,8 +32,8 @@ namespace ME{
     };
 
     struct Trade{
-        OrderId maker_id;
-        OrderId taker_id;
+        ID maker_id;
+        ID taker_id;
         Price price;
         Quantity quantity; 
         Timestamp timestamp;
