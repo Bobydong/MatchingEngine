@@ -6,7 +6,7 @@ namespace ME{
     enum class OrderType { LIMIT, MARKET };
 
     typedef std::int64_t Price;
-        // Prices use int64_t to allow for a large range of prices, and to avoid floating point precision issues.
+        // Prices use int64_t to avoid floating point precision issues.
     typedef std::int64_t OrderId;
     typedef std::int64_t Quantity;
     typedef std::int64_t Timestamp;

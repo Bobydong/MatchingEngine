@@ -19,30 +19,43 @@ endif()
 
 # Core library — add new .cpp files here as you create them
 add_library(me_core
-  src/order_book.cpp
-  src/matching_engine.cpp
+  src/orderbook.cpp
 )
 target_include_directories(me_core PUBLIC include)
 
-# Tests
-include(FetchContent)
-FetchContent_Declare(googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG        v1.14.0
-)
-# Prevent overriding the parent project's compiler/linker settings on Windows
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
+# ---------------------------------------------------------------------------
+# Tests and benchmarks — DISABLED during the rewrite.
+#
+# The tests/ and benchmarks/ directories were removed in 8fca1e8. Until they
+# exist again, add_subdirectory() aborts configure, which also means no
+# compile_commands.json gets written and clangd has nothing to work from.
+#
+# The FetchContent blocks are commented out too: they clone googletest and
+# googlebenchmark on every fresh configure, which is pure wait time while
+# there is nothing to link them against.
+#
+# TO RESTORE: recreate tests/CMakeLists.txt and benchmarks/CMakeLists.txt,
+# then uncomment everything below.
+# ---------------------------------------------------------------------------
 
-set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
-FetchContent_Declare(googlebenchmark
-    GIT_REPOSITORY https://github.com/google/benchmark.git
-    GIT_TAG        v1.8.4
-)
-FetchContent_MakeAvailable(googlebenchmark)
-
-enable_testing()
-add_subdirectory(tests)
-
-# Benchmarks — wired up in Phase 1
-add_subdirectory(benchmarks)
+# include(FetchContent)
+# FetchContent_Declare(googletest
+#   GIT_REPOSITORY https://github.com/google/googletest.git
+#   GIT_TAG        v1.14.0
+# )
+# # Prevent overriding the parent project's compiler/linker settings on Windows
+# set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+# FetchContent_MakeAvailable(googletest)
+#
+# set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+# FetchContent_Declare(googlebenchmark
+#     GIT_REPOSITORY https://github.com/google/benchmark.git
+#     GIT_TAG        v1.8.4
+# )
+# FetchContent_MakeAvailable(googlebenchmark)
+#
+# enable_testing()
+# add_subdirectory(tests)
+#
+# # Benchmarks — wired up in Phase 1
+# add_subdirectory(benchmarks)
