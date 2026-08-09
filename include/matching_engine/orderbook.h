@@ -9,11 +9,6 @@
 namespace ME {
     class orderbook {
         private:
-            struct OrderLocation{
-                Side side;
-                Price price;
-                std::list<Order>::iterator iterator; // 
-            };
             std::map<Price, std::list<Order>, std::greater<Price>> bids_;  
             std::map<Price, std::list<Order>> asks_;
             std::unordered_map<OrderId, OrderLocation> order_locations_;
@@ -54,8 +49,10 @@ OrderLocation struct
 
 std::vector<Trade> add_order(const Order& order)
     This function adds an order to the orderbook in O(log(N)).
-    When adding an order, the matching engine may match it and execute a trade.
+    When adding an order, the book may match it and execute a trade.
         The function returns a vector of trades that were executed as a result of adding the order.        
+    Note, the matching engine class doesn't perform the matching of orders, the orderbook maintains itself.
+    
         
 bool cancel_order(const OrderId& id)
     This function cancels an order in O(1) if other orders exist at the same price level, O(log(N))) if it was the last in its price level.

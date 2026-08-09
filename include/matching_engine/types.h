@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <list>
 
 namespace ME{
     enum class Side { BID, ASK };
@@ -19,6 +20,12 @@ namespace ME{
         Quantity quantity;
         // Order doesn't need a timestamp variable because the orderbook will maintain the time priority of orders 
         // in a price level by always appending to the end of the list, creating a FIFO.
+    };
+
+    struct OrderLocation{
+        Side side;
+        Price price;
+        std::list<Order>::iterator iterator; 
     };
 
     struct Trade{
