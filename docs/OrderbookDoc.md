@@ -1,42 +1,9 @@
-# System Design for V1 
-## Notes
-- Single-threaded for now
-- No networking for now
+# Orderbook.h + Orderbook.cpp Explanation
 
+## Definition Overview
+```
 
-## Flow of Operations
-### Order Placement and Matching
-1. User creates an order
-2. User sends order to exchange
-3. Exchange performs some initial checks of the order
-4. Exchange gives order to the matching engine
-5. Matching engine matches the order if possible and walks the book
-   - If limit order, the matching engine rests it in the book
-   - If market order, the matching enigne discards unused quantity
-
-
-## Data Structure Design
-### Order
-An order needs to have:
-- Order-specific ID
-- Who made the order (user ID)
-- Price 
-- What symbol the order is buying/selling
-- Which side it is (Bid/Ask)
-- The type of order it is (Market/Limit)
-- The quantity of the order
-
-### The Orderbook
-The order book should soley be a data structure to hold all the bids + asks for a single symbol. 
-- It should keep the data organized in price-time priority, but should not perform any trades. 
-- It should only expose methods to:
-  - Fetch the best bed/ask price
-  - Fetch total current number of bids + asks for that symbol
-  - Add orders to the book after matching engine is finished processing
-  - Cancel orders 
-
-
-
+```
 
 ```
     typedef std::int64_t Price; // Prices use int64_t to avoid floating point precision issues.
