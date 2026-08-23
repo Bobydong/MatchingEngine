@@ -14,13 +14,6 @@ namespace ME {
     // The matching engine owns all of that: it receives an order, walks this book
     // to decide the fills, generates the Trades, and only then rests whatever
     // quantity is left over via add_order().
-    // 
-    // Preconditions on add_order() -- the caller (exchange or matching engine) is
-    // responsible for these; the book will happily rest garbage:
-    //   - order.quantity > 0
-    //   - order.price is a valid tick
-    //   - order.type == OrderType::LIMIT   (a MARKET order never rests)
-    //   - order.symbol is this book's symbol
 
     class orderbook {
         private:
@@ -42,12 +35,24 @@ namespace ME {
             std::size_t number_of_orders() const { return order_locations_.size(); }
 
 
-            // --- Methods for Matching Engine --- 
-            // Reduces the quantity of the best order on the given side by the specified amount.
-            // Returns true if the best order was found and reduced, false if there was no best order or if the amount to reduce was greater than the best order's quantity.
-            bool reduce_best_order_quantity(const Side& side, const Quantity& amount_to_reduce);
-            // Returns the quantity of the best order on the given side, or 0 if there is no best order.
-            Quantity get_best_order_quantity(const Side& side) const;
-            
+            // --- Methods for Matching Engine ---
+
+            // Reduces the best order on the given side (front of the best price
+            // level, i.e. the oldest order there under FIFO) by up to max_amount.
+            //
+            // The reduction is CLAMPED to what the order actually has resting, so
+            // the engine can simply ask for the full incoming quantity and read
+            // back how much it really got from Fill::quantity. If the order reaches
+            // quantity 0 it is removed from the book -- that is the book keeping its
+            // own invariant (no zero-quantity orders rest), not a matching decision.
+            //
+            // Returns std::nullopt if that side is empty or max_amount <= 0; in
+            // that case the book is left completely untouched.
+            //
+            // The returned Fill carries only what the book knows: which maker was
+            // reduced, at what price, and by how much. The engine adds taker_id and
+            // a timestamp to turn it into a Trade.
+            std::optional<Fill> reduce_best_order_quantity(Side side, Quantity amount);
+
     };
 }

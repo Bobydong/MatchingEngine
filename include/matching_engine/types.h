@@ -31,11 +31,17 @@ namespace ME{
         std::list<Order>::iterator iterator; 
     };
 
+    struct Fill{
+        ID maker_id;        // owner of the resting order that was reduced
+        Price price;        // the resting order's price -- the execution price
+        Quantity quantity;  // amount actually reduced, which may be < requested
+    };
+
     struct Trade{
         ID maker_id;
         ID taker_id;
         Price price;
-        Quantity quantity; 
+        Quantity quantity;
         Timestamp timestamp;
     };
 
