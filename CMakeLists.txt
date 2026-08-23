@@ -12,6 +12,12 @@ endif()
 
 add_compile_options(-Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wnon-virtual-dtor)
 
+# Designated initializers that do not follow declaration order are ill-formed in
+# ISO C++ but only a (non-default) warning in Clang. Every ME id/price/quantity
+# is the same int64_t, so an out-of-order Fill init would otherwise transpose
+# fields silently. Make it a hard error.
+add_compile_options(-Werror=reorder-init-list)
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
   add_link_options(-fsanitize=address,undefined)
@@ -24,38 +30,36 @@ add_library(me_core
 target_include_directories(me_core PUBLIC include)
 
 # ---------------------------------------------------------------------------
-# Tests and benchmarks — DISABLED during the rewrite.
+# Tests — re-enabled now that tests/ exists again.
 #
-# The tests/ and benchmarks/ directories were removed in 8fca1e8. Until they
-# exist again, add_subdirectory() aborts configure, which also means no
-# compile_commands.json gets written and clangd has nothing to work from.
+# Benchmarks stay disabled: benchmarks/ was removed in 8fca1e8 and has not been
+# recreated, so add_subdirectory() would abort configure, which also means no
+# compile_commands.json gets written and clangd has nothing to work from. The
+# googlebenchmark FetchContent block stays commented out with it — it clones on
+# every fresh configure, which is pure wait time with nothing to link against.
 #
-# The FetchContent blocks are commented out too: they clone googletest and
-# googlebenchmark on every fresh configure, which is pure wait time while
-# there is nothing to link them against.
-#
-# TO RESTORE: recreate tests/CMakeLists.txt and benchmarks/CMakeLists.txt,
-# then uncomment everything below.
+# TO RESTORE BENCHMARKS: recreate benchmarks/CMakeLists.txt, then uncomment the
+# remaining commented lines below.
 # ---------------------------------------------------------------------------
 
-# include(FetchContent)
-# FetchContent_Declare(googletest
-#   GIT_REPOSITORY https://github.com/google/googletest.git
-#   GIT_TAG        v1.14.0
-# )
-# # Prevent overriding the parent project's compiler/linker settings on Windows
-# set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-# FetchContent_MakeAvailable(googletest)
-#
+include(FetchContent)
+FetchContent_Declare(googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG        v1.14.0
+)
+# Prevent overriding the parent project's compiler/linker settings on Windows
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+enable_testing()
+add_subdirectory(tests)
+
 # set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
 # FetchContent_Declare(googlebenchmark
 #     GIT_REPOSITORY https://github.com/google/benchmark.git
 #     GIT_TAG        v1.8.4
 # )
 # FetchContent_MakeAvailable(googlebenchmark)
-#
-# enable_testing()
-# add_subdirectory(tests)
 #
 # # Benchmarks — wired up in Phase 1
 # add_subdirectory(benchmarks)
